@@ -21,7 +21,7 @@ con = psql.connect(
 #names of routes within UCity Study Area
 bus = ['12', '124', '125', '13', '21', '29', '30', '31', '40', '42', '44', '49', '62', '64', '78', '9', 'LUCYGO', 'LUCYGR']
 trolley = ['10','11','13','34','36']
-regrail = ['AIR','CHE', 'CHW', 'CYN', 'LAN', 'MED', 'FOX', 'NOR', 'PAO', 'TRE', 'WAR', 'WIL', 'WTR']
+regrail = ['Airport Line','Chestnut Hill East Line', 'Chestnut Hill West Line', 'Cynwyd Line', 'Lansdale/Doylestown Line', 'Media/Elwyn Line', 'Fox Chase Line', 'Manayunk/Norristown Line', 'Paoli/Thorndale Line', 'Trenton Line', 'Warminster Line', 'Wilmington/Newark Line', 'West Trenton Line']
 subway = ['MFL']
 
 ##### SQL QUERIES #####
@@ -75,7 +75,6 @@ def tripcounter(mode, name):
         amtrip_counter = 0
         pmtrip_counter = 0
         for j in tqdm(xrange(0, len(trips))):
-            #print trips[j][0]
             cur.execute(q_ampeak.format(trips[j][0]))
             amtrips = cur.fetchall()
             if len(amtrips) > 0:
@@ -90,15 +89,15 @@ def tripcounter(mode, name):
         ampeak_trips.append(amtrip_counter)
         pmpeak_trips.append(pmtrip_counter)
 
-    print ampeak_trips
-    print pmpeak_trips
+    #print ampeak_trips
+    #print pmpeak_trips
 
     df = pd.DataFrame(list(zip(route, allday_trips, ampeak_trips, pmpeak_trips)), 
                columns =['route', 'allday', 'ampeak', 'pmpeak']) 
 
     df.to_csv(r'D:\dvrpc_shared\Sandbox\FY21_UCity\%s.csv' % name, index=False)
 
-tripcounter(trolley, 'trolley_trips')
-tripcounter(subway, 'subway_trips')
+#tripcounter(trolley, 'trolley_trips')
+#tripcounter(subway, 'subway_trips')
 tripcounter(regrail, 'regrail_trips')
-tripcounter(bus, 'bus_trips')
+#tripcounter(bus, 'bus_trips')
