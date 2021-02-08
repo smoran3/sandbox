@@ -19,7 +19,7 @@ con = psql.connect(
 #0 = trolley/nhsl
 
 #names of routes within UCity Study Area
-bus = ['12', '124', '125', '13', '21', '29', '30', '31', '40', '42', '44', '49', '62', '64', '78', '9', 'LUCYGO', 'LUCYGR']
+bus = ['12', '124', '125', '21', '29', '30', '31', '40', '42', '44', '49', '62', '64', '78', '9', 'LUCYGO', 'LUCYGR']
 trolley = ['10','11','13','34','36']
 regrail = ['Airport Line','Chestnut Hill East Line', 'Chestnut Hill West Line', 'Cynwyd Line', 'Lansdale/Doylestown Line', 'Media/Elwyn Line', 'Fox Chase Line', 'Manayunk/Norristown Line', 'Paoli/Thorndale Line', 'Trenton Line', 'Warminster Line', 'Wilmington/Newark Line', 'West Trenton Line']
 subway = ['MFL']
