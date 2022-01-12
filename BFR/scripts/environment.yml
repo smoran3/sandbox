@@ -6,4 +6,10 @@ dependencies:
   - pyproj<3
   - geopandas<0.9
   - psycopg2
+  - sqlalchemy
+  - sqlalchemy-utils
   - geoalchemy2
+  - folium
+  - python-dotenv
+  - black
+  - numpy
