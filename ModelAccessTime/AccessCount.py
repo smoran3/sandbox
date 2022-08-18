@@ -1,11 +1,12 @@
 # find the number of zones you can get to via transit from each zone in a certain amount of time
 # and the number of zones oyu can get to via car from each zone
 # updated 8/18/22 for Brett LRP eval
+### Visum only likes Python 2, so this is a little janky. Run by manually opening the desired version files and selecting script > run script
 
 import numpy
 import csv
 import os
-from VisumTools import helpers as h
+import helpers as h
 import win32com.client
 
 
@@ -58,13 +59,13 @@ def runYear(year, yearFiles):
         }
 
 
-    def tabluate(modeMatrix, modeName):
+    def tabulate(modeMatrix, modeName):
         #there are some zones in the model that are not included in the csv  - all outside of the region
         #create a dictionary to store these zones to make sure we aren't missing anything important
         NoDataZones = {}
             
         #create file and open for writing as the for loop iterates
-        with open(fr'D:/dvrpc_shared/Sandbox/ModelAccessTime/{modeName}_AM_{year}.csv','wb') as IO:
+        with open(r'D:/dvrpc_shared/Sandbox/ModelAccessTime/{0}_AM_{1}.csv'.format(modeName, year),'wb') as IO:
             w = csv.writer(IO)
             #write the header row
             w.writerow(['Zone_Number','Jobs','ParkTrail','ActivityCenter','Grocery','HealthFac','SchoolU','Count'])    
@@ -130,7 +131,7 @@ def runYear(year, yearFiles):
                     
         #write out NoDataZones to csv for reference
         #the resulting csv has 2 columns, 1 is the origin zone, 2 is the destination zone within 45 minutes with no data. origin zones are repeated for however many destination zones have no data.
-        with open(fr'D:/dvrpc_shared/Sandbox/ModelAccessTime/{modeName}_NoDataZones_AM_{year}.csv','wb') as IO:
+        with open(r'D:/dvrpc_shared/Sandbox/ModelAccessTime/{0}_NoDataZones_AM_{1}.csv'.format(modeName, year),'wb') as IO:
             w = csv.writer(IO)    
             w.writerow(['OZone','DZone'])
             for OZone in NoDataZones:
