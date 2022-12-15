@@ -1,0 +1,17 @@
+name: bike_network_update
+channels:
+  - conda-forge
+dependencies:
+  - python=3.9*
+  - pyproj<3
+  - geopandas
+  - psycopg2
+  - geoalchemy2
+  - sqlalchemy
+  - sqlalchemy-utils
+  - black
+  - flake8
+  - jupyterlab
+  - numpy
+  - python-dotenv
+  - shapely

@@ -1,0 +1,6 @@
+
+test.csv
+*.csv
+\shape
+\BikeNetworkUpdate\Notebooks
+.env
