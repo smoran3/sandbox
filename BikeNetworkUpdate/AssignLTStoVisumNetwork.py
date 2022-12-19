@@ -1,6 +1,15 @@
 """
-DESCRIBE HERE
+This script pulls the road network from Visum, assigns a level of traffic stress (LTS),
+and insrets the resulting table into a PostGIS enabled database. It is designed to be used
+after network updates are made in the model, before the network is used for connectivity 
+or other analysis. The resulting table replaces the existing table.
+
+The variables listed at the top should be updated with each run.  Attributes names should 
+be verrified with new versions.
 """
+
+#UPDATE HERE
+versionFilePath = "D:/dvrpc_shared/BikeLTS/Phase3/NetworkUpdates/TIM23_2020_forAnalysis_072920.ver" 
 
 
 from sqlalchemy_utils import database_exists, create_database
@@ -12,8 +21,6 @@ import geopandas as gpd
 
 #open Visum and load version file
 Visum = h.CreateVisum(18)
-#UPDATE HERE
-versionFilePath = "D:/dvrpc_shared/BikeLTS/Phase3/NetworkUpdates/TIM23_2020_forAnalysis_072920.ver" #This version file is FOR TESTING ONLY - update to new model version when ready
 Visum.LoadVersion(versionFilePath)
 
 #lookup table for lane, speed
@@ -86,6 +93,7 @@ def make_attribute_list(att_name):
     att_name = list(map)
     return att_name
     
+No       = make_attribute_list("No")
 FromNode = make_attribute_list("FromNodeNo")
 ToNode   = make_attribute_list("ToNodeNo")
 Length   = make_attribute_list("Length")
@@ -95,6 +103,8 @@ Speed    = make_attribute_list("SPEED_LTS") #this will need a dif name
 LinkType = make_attribute_list("TypeNo")
 WKTPoly  = make_attribute_list("WKTPoly")
 Slope    = make_attribute_list("SLOPE_PERC") #check name of this
+OneWay   = make_attribute_list("IsOneWayRoad")
+R_OneWay = make_attribute_list("ReverseLink\IsOneWayRoad")
 
 LinkStress = [0]* len(FromNode)
 
@@ -105,7 +115,8 @@ for i in range(0, len(FromNode)):
 
 #combine attributes into geodataframe
 df = pd.DataFrame(
-    {'FromNode': FromNode,
+    {'No'      : No,
+    'FromNode' : FromNode,
     'ToNode'   : ToNode,
     'Length'   : Length,
     'TotLanes' : TotLanes,
@@ -113,9 +124,12 @@ df = pd.DataFrame(
     'Speed'    : Speed,
     'LinkType' : LinkType,
     'Slope'    : Slope,
+    'OneWay'   : OneWay,
+    'R_OneWay' : R_OneWay,
     'Geom'     : WKTPoly
     }
 )
+
 
 gs = gpd.GeoSeries.from_wkt(df['Geom'])
 gdf = gpd.GeoDataFrame(df, geometry = gs, crs = 26918)
@@ -126,9 +140,7 @@ if not database_exists(ENGINE.url):
 
 ENGINE.execute("CREATE EXTENSION IF NOT EXISTS postgis;")
 
-# drop existing backup and copy previous version as backup
-#ENGINE.execute("DROP TABLE IF EXISTS lts_network_backup; COMMIT;")
-#ENGINE.execute("SELECT * INTO lts_network_backup FROM lts_network; COMMIT;")
+
 
 # write geodataframe to postgis, replacing previous table by same name
 gdf.to_postgis("lts_network", con=ENGINE, if_exists="replace")
