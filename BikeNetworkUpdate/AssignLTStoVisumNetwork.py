@@ -126,6 +126,7 @@ df = pd.DataFrame(
     'Slope'    : Slope,
     'OneWay'   : OneWay,
     'R_OneWay' : R_OneWay,
+    'LTS'      : LinkStress,
     'Geom'     : WKTPoly
     }
 )
