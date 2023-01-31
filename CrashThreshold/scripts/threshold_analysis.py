@@ -3,6 +3,7 @@ import pandas as pd
 from sqlalchemy_utils import database_exists, create_database
 import env_vars as ev
 from env_vars import ENGINE
+pd.options.mode.chained_assignment = None  # default='warn'
 
 #read in segments joined to county boundaries from postgres and create dataframe
 Q_grab = """
@@ -74,52 +75,67 @@ df['perc_angle']   = (df['angle']/df['total_cras'])
 df['perc_left']    = (df['left_turns']/df['total_cras'])
 
 
+#create county subsets
+def create_county_subsets(county):
+    dfsub = df[df['co_name'] == county]
+    return  dfsub
+
+
+Bucks_df        = create_county_subsets('Bucks')
+Chester_df      = create_county_subsets('Chester')
+Delaware_df     = create_county_subsets('Delaware')
+Montgomery_df   = create_county_subsets('Montgomery')
+Philadelphia_df = create_county_subsets('Philadelphia')
+
+counties = ['Bucks', 'Chester', 'Delaware', 'Montgomery', 'Philadelphia']
+df_list = [Bucks_df, Chester_df, Delaware_df, Montgomery_df, Philadelphia_df]
+
+county_dict = dict(zip(counties, df_list))
+
+
 #calculate the mean and standard deviation for each percentage field for each county
-c_vu_mean      = df.groupby('co_name')['perc_vu'].mean()
-c_fatal_mean   = df.groupby('co_name')['perc_fatal'].mean()
-c_serious_mean = df.groupby('co_name')['perc_serious'].mean()
-c_rear_mean    = df.groupby('co_name')['perc_rear'].mean()
-c_angle_mean   = df.groupby('co_name')['perc_angle'].mean()
-c_left_mean    = df.groupby('co_name')['perc_left'].mean()
+counties = ['Bucks', 'Chester', 'Delaware', 'Montgomery', 'Philadelphia']
+means = {}
+sds = {}
+crashtypes = ['vu', 'fatal', 'serious', 'rear', 'angle', 'left']
+for county in counties: 
+    means[county] = {}
+    sds[county] = {}
+    for crashtype in crashtypes:
+        fieldname = f'perc_{crashtype}'
+        means[county][crashtype] = county_dict[county][fieldname].mean()
+        sds[county][crashtype] = county_dict[county][fieldname].std()
 
-c_vu_sd      = df.groupby('co_name')['perc_vu'].std()
-c_fatal_sd   = df.groupby('co_name')['perc_fatal'].std()
-c_serious_sd = df.groupby('co_name')['perc_serious'].std()
-c_rear_sd    = df.groupby('co_name')['perc_rear'].std()
-c_angle_sd   = df.groupby('co_name')['perc_angle'].std()
-c_left_sd    = df.groupby('co_name')['perc_left'].std()
-
-#create dictionaries to iterate over in function
-types = ['vu', 'fatal', 'serious', 'rear', 'angle', 'left']
-c_means = [c_vu_mean, c_fatal_mean, c_serious_mean, c_rear_mean, c_angle_mean, c_left_mean]
-c_sds   = [c_vu_sd, c_fatal_sd, c_serious_sd, c_rear_sd, c_angle_sd, c_left_sd]
-
-c_meandict = dict(zip(types, c_means))
-c_sd_dict  = dict(zip(types, c_sds))
 
 #function to flag segments based on county averages
-def county_flag_segments(type, universe):
+def county_flag_segments(type, county):
+      df = county_dict[county]
       col  = fr'perc_{type}'
-      mean = c_meandict[type][universe]
-      sd  = c_sd_dict[type][universe]
+      mean = means[county][type]
+      sd  = sds[county][type]
       oneval = mean+sd
       twoval = mean+sd+sd
       #above average
-      df.loc[df[col] >  mean, fr'{universe}_av_{type}'] = 'True'
-      df.loc[df[col] <= mean, fr'{universe}_av_{type}'] = 'False'
+      df.loc[df[col] >  mean, fr'c_av_{type}'] = 'True'
+      df.loc[df[col] <= mean, fr'c_av_{type}'] = 'False'
       #above one SD
-      df.loc[df[col] >  oneval, fr'{universe}_osd_{type}'] = 'True'
-      df.loc[df[col] <= oneval, fr'{universe}_osd_{type}'] = 'False'
+      df.loc[df[col] >  oneval, fr'c_osd_{type}'] = 'True'
+      df.loc[df[col] <= oneval, fr'c_osd_{type}'] = 'False'
       #above two SD
-      df.loc[df[col] >  twoval, fr'{universe}_tsd_{type}'] = 'True'
-      df.loc[df[col] <= twoval, fr'{universe}_tsd_{type}'] = 'False'
+      df.loc[df[col] >  twoval, fr'c_tsd_{type}'] = 'True'
+      df.loc[df[col] <= twoval, fr'c_tsd_{type}'] = 'False'
 
 #list of counties to iterate over
 counties = ['Bucks', 'Chester', 'Delaware', 'Montgomery', 'Philadelphia']
 for county in counties:
-    for key in c_meandict:
+    for key in means[county]:
         county_flag_segments(key, county)
 
+
+#combine county subsets back into single dataframe
+df_combine = pd.concat(Bucks_df, Chester_df, Delaware_df, Montgomery_df, Philadelphia_df)
+#convert to geodataframe
+#gdf = gpd.GeodataFrame(df_combine, crs = "EPSG:26918", geometry = tshape)
 #output
 df.to_sql('county_thresholds', ENGINE, if_exists= 'replace')
 
