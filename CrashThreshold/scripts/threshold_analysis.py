@@ -57,12 +57,13 @@ for key in meandict:
     flag_segments(key, 'd')
 
 #output
+df.to_sql('district_thresholds', ENGINE, if_exists= 'replace')
 
 
 
 ##### UNIVERSE = QUALIFYING ROADS IN EACH COUNTY #####
 #re-grab segments to start with a fresh table
-cdf = pd.read_sql_query(Q_grab, ENGINE)
+df = pd.read_sql_query(Q_grab, ENGINE)
 
 #calculate the percent of total crashes in each category for all district 6 segments
 df['perc_vu']      = ((df['ped_count']+df['bike_count'])/df['total_cras'])
@@ -118,3 +119,7 @@ counties = ['Bucks', 'Chester', 'Delaware', 'Montgomery', 'Philadelphia']
 for county in counties:
     for key in c_meandict:
         county_flag_segments(key, county)
+
+#output
+df.to_sql('county_thresholds', ENGINE, if_exists= 'replace')
+
