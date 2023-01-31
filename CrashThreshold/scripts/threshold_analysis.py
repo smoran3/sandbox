@@ -133,7 +133,7 @@ for county in counties:
 
 
 #combine county subsets back into single dataframe
-df_combine = pd.concat(Bucks_df, Chester_df, Delaware_df, Montgomery_df, Philadelphia_df)
+df_combine = pd.concat([Bucks_df, Chester_df, Delaware_df, Montgomery_df, Philadelphia_df], ignore_index = True)
 #convert to geodataframe
 #gdf = gpd.GeodataFrame(df_combine, crs = "EPSG:26918", geometry = tshape)
 #output
