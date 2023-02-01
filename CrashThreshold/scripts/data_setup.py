@@ -15,7 +15,7 @@ from env_vars import GIS_ENGINE, ENGINE, DATA_ROOT
 
 def crash_data_setup():
 
-    shape = "crashes_joined_rms_v2"
+    shape = "RMS_Joined"
 
     #create database and enable postgis
     if not database_exists(ENGINE.url):
@@ -25,8 +25,11 @@ def crash_data_setup():
     #read crash segment shapefile and write to postgres
     segments = gpd.read_file(fr"{ev.DATA_ROOT}/{shape}.shp")
     segments_clean = segments[segments.geometry.type == 'LineString']
-    segments_clean.to_postgis('crash_segments', con=ENGINE, if_exists="replace")
-    
+    segments_touse = segments_clean[(segments_clean.LANE_CNT_1 >= 4)|(segments_clean.lane_cnt >= 4)]
+    segments_touse.to_postgis('crash_segments', con=ENGINE, if_exists="replace")
+    #s = len(segments_touse)
+    #print(f'Segments: {s}')
+    '''
     #read county boundaries from gis database
     Q_counties = """
     select *
@@ -65,10 +68,13 @@ def crash_data_setup():
     )
     #write dataframe to postgres database
     joined.to_postgis('crashes_bycounty', con=ENGINE, if_exists="replace")
+    t = len(joined)
+    print(f'Joined: {t}')
     print("To postgis: Complete")
     
 
     #return joined
+    '''
 
 if __name__ == "__main__":
     crash_data_setup()

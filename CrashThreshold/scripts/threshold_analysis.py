@@ -8,22 +8,8 @@ pd.options.mode.chained_assignment = None  # default='warn'
 
 #read in segments joined to county boundaries from postgres and create dataframe
 Q_grab = """
-    select 
-        concatid,
-        nlf_id,
-        nlf_cntl_b,
-        nlf_cntl_e,
-        total_cras,
-        fatal_coun,
-        serious_in,
-        ped_count,
-        bike_count,
-        rear_end,
-        angle,
-        left_turns,
-        tshape as geometry,
-        co_name
-    FROM crashes_bycounty
+    select *
+    FROM crash_segments
     """
 df = gpd.read_postgis(Q_grab, ENGINE, geom_col='geometry', crs=26918)
 
@@ -91,15 +77,15 @@ df['perc_left']    = (df['left_turns']/df['total_cras'])
 
 #create county subsets
 def create_county_subsets(county):
-    dfsub = df[df['co_name'] == county]
+    dfsub = df[df['cty_code'] == county]
     return  dfsub
 
 
-Bucks_df        = create_county_subsets('Bucks')
-Chester_df      = create_county_subsets('Chester')
-Delaware_df     = create_county_subsets('Delaware')
-Montgomery_df   = create_county_subsets('Montgomery')
-Philadelphia_df = create_county_subsets('Philadelphia')
+Bucks_df        = create_county_subsets('09')
+Chester_df      = create_county_subsets('15')
+Delaware_df     = create_county_subsets('23')
+Montgomery_df   = create_county_subsets('46')
+Philadelphia_df = create_county_subsets('67')
 
 counties = ['Bucks', 'Chester', 'Delaware', 'Montgomery', 'Philadelphia']
 df_list = [Bucks_df, Chester_df, Delaware_df, Montgomery_df, Philadelphia_df]
