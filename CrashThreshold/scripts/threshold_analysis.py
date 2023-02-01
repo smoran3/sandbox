@@ -8,10 +8,24 @@ pd.options.mode.chained_assignment = None  # default='warn'
 
 #read in segments joined to county boundaries from postgres and create dataframe
 Q_grab = """
-    SELECT *
+    select 
+        concatid,
+        nlf_id,
+        nlf_cntl_b,
+        nlf_cntl_e,
+        total_cras,
+        fatal_coun,
+        serious_in,
+        ped_count,
+        bike_count,
+        rear_end,
+        angle,
+        left_turns,
+        tshape as geometry,
+        co_name
     FROM crashes_bycounty
     """
-df = gpd.read_postgis(Q_grab, ENGINE, geom_col='tshape', crs=26918)
+df = gpd.read_postgis(Q_grab, ENGINE, geom_col='geometry', crs=26918)
 
 #calculate the percent of total crashes in each category for all district 6 segments
 df['perc_vu']      = ((df['ped_count']+df['bike_count'])/df['total_cras'])
@@ -64,7 +78,7 @@ df.to_file(fr"{ev.DATA_ROOT}/district_thresholds.shp")
 
 ##### UNIVERSE = QUALIFYING ROADS IN EACH COUNTY #####
 #re-grab segments to start with a fresh table
-df = gpd.read_postgis(Q_grab, ENGINE, geom_col='tshape', crs=26918)
+df = gpd.read_postgis(Q_grab, ENGINE, geom_col='geometry', crs=26918)
 
 #calculate the percent of total crashes in each category for all district 6 segments
 df['perc_vu']      = ((df['ped_count']+df['bike_count'])/df['total_cras'])
@@ -135,9 +149,8 @@ for county in counties:
 #combine county subsets back into single dataframe
 dataframesList = [Bucks_df, Chester_df, Delaware_df, Montgomery_df, Philadelphia_df]
 df_combine = gpd.GeoDataFrame(pd.concat(dataframesList, ignore_index = True))
-print(df_combine.dtypes)
+
 #output
-#df.to_sql('county_thresholds', ENGINE, if_exists= 'replace')
 df_combine.to_postgis('county_thresholds', con = ENGINE, if_exists= 'replace')
 df_combine.to_file(fr"{ev.DATA_ROOT}/county_thresholds.shp") 
 
