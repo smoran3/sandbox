@@ -153,4 +153,5 @@ cython_debug/
 
 
 .env
+.ipynb
 /notebooks
