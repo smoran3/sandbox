@@ -3,6 +3,7 @@ import pandas as pd
 from sqlalchemy_utils import database_exists, create_database
 import env_vars as ev
 from env_vars import ENGINE
+import geoalchemy2
 pd.options.mode.chained_assignment = None  # default='warn'
 
 #read in segments joined to county boundaries from postgres and create dataframe
@@ -10,7 +11,7 @@ Q_grab = """
     SELECT *
     FROM crashes_bycounty
     """
-df = pd.read_sql_query(Q_grab, ENGINE)
+df = gpd.read_postgis(Q_grab, ENGINE, geom_col='tshape', crs=26918)
 
 #calculate the percent of total crashes in each category for all district 6 segments
 df['perc_vu']      = ((df['ped_count']+df['bike_count'])/df['total_cras'])
@@ -58,13 +59,12 @@ for key in meandict:
     flag_segments(key, 'd')
 
 #output
-df.to_sql('district_thresholds', ENGINE, if_exists= 'replace')
-
-
+df.to_postgis('district_thresholds', con = ENGINE, if_exists= 'replace')
+df.to_file(fr"{ev.DATA_ROOT}/district_thresholds.shp") 
 
 ##### UNIVERSE = QUALIFYING ROADS IN EACH COUNTY #####
 #re-grab segments to start with a fresh table
-df = pd.read_sql_query(Q_grab, ENGINE)
+df = gpd.read_postgis(Q_grab, ENGINE, geom_col='tshape', crs=26918)
 
 #calculate the percent of total crashes in each category for all district 6 segments
 df['perc_vu']      = ((df['ped_count']+df['bike_count'])/df['total_cras'])
@@ -133,9 +133,11 @@ for county in counties:
 
 
 #combine county subsets back into single dataframe
-df_combine = pd.concat([Bucks_df, Chester_df, Delaware_df, Montgomery_df, Philadelphia_df], ignore_index = True)
-#convert to geodataframe
-#gdf = gpd.GeodataFrame(df_combine, crs = "EPSG:26918", geometry = tshape)
+dataframesList = [Bucks_df, Chester_df, Delaware_df, Montgomery_df, Philadelphia_df]
+df_combine = gpd.GeoDataFrame(pd.concat(dataframesList, ignore_index = True))
+print(df_combine.dtypes)
 #output
-df.to_sql('county_thresholds', ENGINE, if_exists= 'replace')
+#df.to_sql('county_thresholds', ENGINE, if_exists= 'replace')
+df_combine.to_postgis('county_thresholds', con = ENGINE, if_exists= 'replace')
+df_combine.to_file(fr"{ev.DATA_ROOT}/county_thresholds.shp") 
 
