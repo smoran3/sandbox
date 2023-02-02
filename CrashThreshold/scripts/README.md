@@ -2,6 +2,11 @@
 
 Identifying crash thresholds for PennDOT Road Diet Candidate Identification Anlaysis (FY23)
 
+Run Order:
+
+1. data_setup.py
+2. threshold_analysis.py
+
 ### Environment Setup
 
 # Uses environment previously created for crash analysis
