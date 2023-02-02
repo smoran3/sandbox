@@ -27,54 +27,7 @@ def crash_data_setup():
     segments_clean = segments[segments.geometry.type == 'LineString']
     segments_touse = segments_clean[(segments_clean.LANE_CNT_1 >= 4)|(segments_clean.lane_cnt >= 4)]
     segments_touse.to_postgis('crash_segments', con=ENGINE, if_exists="replace")
-    #s = len(segments_touse)
-    #print(f'Segments: {s}')
-    '''
-    #read county boundaries from gis database
-    Q_counties = """
-    select *
-    from boundaries.countyboundaries c 
-    where dvrpc_reg  = 'Yes'
-    and state = 'PA';"""
-    counties = gpd.GeoDataFrame.from_postgis(
-        Q_counties, 
-        con = GIS_ENGINE,
-        geom_col = "shape",
-    )
-    #write to postgis
-    counties.to_postgis('county_boundaries', con=ENGINE, if_exists="replace")
-   
-    #join segments to counties
-    Q_join = fr"""
-    with segs as(
-        select *, st_transform(geometry, 26918) as tshape 
-        from crash_segments 
-        ), 
-    boundaries as (
-        select *
-        from county_boundaries c 
-        where dvrpc_reg  = 'Yes'
-        and state = 'PA'
-        )
-    select s.*, b.co_name
-    from segs s
-    join boundaries b 
-    on ST_Contains(b.shape, s.tshape);
-    """
-    joined = gpd.GeoDataFrame.from_postgis(
-        Q_join,
-        con = ENGINE,
-        geom_col = "tshape"
-    )
-    #write dataframe to postgres database
-    joined.to_postgis('crashes_bycounty', con=ENGINE, if_exists="replace")
-    t = len(joined)
-    print(f'Joined: {t}')
-    print("To postgis: Complete")
-    
 
-    #return joined
-    '''
 
 if __name__ == "__main__":
     crash_data_setup()
