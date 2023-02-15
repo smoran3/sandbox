@@ -9,11 +9,7 @@ import geopandas as gpd
 import pandas as pd
 from sqlalchemy_utils import database_exists, create_database
 import env_vars as ev
-from env_vars import GIS_ENGINE, ENGINE, DATA_ROOT
-import sys
-sys.setrecursionlimit(5000)
-
-
+from env_vars import GIS_ENGINE, ENGINE, DATA_ROOTS
 
 def crash_data_setup():
 
