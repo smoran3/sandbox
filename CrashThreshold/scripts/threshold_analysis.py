@@ -57,6 +57,7 @@ def calc_county_averages(county):
     volbin_dict = dict(zip(volbin_names, volbin_list))
 
     def flag_segments(volname):
+        d = volbin_dict[volname]
         means = {}
         sds = {}
         crashtypes = ['vu', 'fatal', 'serious', 'rear', 'angle', 'left']
@@ -71,16 +72,16 @@ def calc_county_averages(county):
             oneval = mean+sd
             twoval = mean+sd+sd
             #above average
-            df.loc[df[fieldname] >  mean, fr'c_av_{crashtype}'] = 'True'
-            df.loc[df[fieldname] <= mean, fr'c_av_{crashtype}'] = 'False'
+            d.loc[df[fieldname] >  mean, fr'c_av_{crashtype}'] = 'True'
+            d.loc[df[fieldname] <= mean, fr'c_av_{crashtype}'] = 'False'
             #above one SD
-            df.loc[df[fieldname] >  oneval, fr'c_osd_{crashtype}'] = 'True'
-            df.loc[df[fieldname] <= oneval, fr'c_osd_{crashtype}'] = 'False'
+            d.loc[df[fieldname] >  oneval, fr'c_osd_{crashtype}'] = 'True'
+            d.loc[df[fieldname] <= oneval, fr'c_osd_{crashtype}'] = 'False'
             #above two SD
-            df.loc[df[fieldname] >  twoval, fr'c_tsd_{crashtype}'] = 'True'
-            df.loc[df[fieldname] <= twoval, fr'c_tsd_{crashtype}'] = 'False'
+            d.loc[df[fieldname] >  twoval, fr'c_tsd_{crashtype}'] = 'True'
+            d.loc[df[fieldname] <= twoval, fr'c_tsd_{crashtype}'] = 'False'
         
-        return df
+        return d
     
     v1 = flag_segments('volbin1')
     v2 = flag_segments('volbin2')
