@@ -4,7 +4,7 @@ and insrets the resulting table into a PostGIS enabled database. It is designed 
 after network updates are made in the model, before the network is used for connectivity 
 or other analysis. The resulting table replaces the existing table.
 
-The variables listed at the top should be updated with each run.  Attributes names should 
+The variables listed at the top should be updated with each run.  Attribute names should 
 be verrified with new versions.
 """
 
@@ -15,12 +15,13 @@ versionFilePath = "D:/dvrpc_shared/BikeLTS/Phase3/NetworkUpdates/TIM23_2020_forA
 from sqlalchemy_utils import database_exists, create_database
 import env_vars as ev
 from env_vars import ENGINE
+from env_vars import DATA_ROOT
 import VisumPy.helpers as h
 import pandas as pd
 import geopandas as gpd
 
 #open Visum and load version file
-Visum = h.CreateVisum(18)
+Visum = h.CreateVisum(23)
 Visum.LoadVersion(versionFilePath)
 
 #lookup table for lane, speed
@@ -135,13 +136,17 @@ df = pd.DataFrame(
 gs = gpd.GeoSeries.from_wkt(df['Geom'])
 gdf = gpd.GeoDataFrame(df, geometry = gs, crs = 26918)
 
-# create postgres database
-if not database_exists(ENGINE.url):
-    create_database(ENGINE.url)
-
-ENGINE.execute("CREATE EXTENSION IF NOT EXISTS postgis;")
+gdf.to_json(DATA_ROOT, drive="GeoJSON")
 
 
 
-# write geodataframe to postgis, replacing previous table by same name
-gdf.to_postgis("lts_network", con=ENGINE, if_exists="replace")
+# # create postgres database
+# if not database_exists(ENGINE.url):
+#     create_database(ENGINE.url)
+
+# ENGINE.execute("CREATE EXTENSION IF NOT EXISTS postgis;")
+
+
+
+# # write geodataframe to postgis, replacing previous table by same name
+# gdf.to_postgis("lts_network", con=ENGINE, if_exists="replace")
